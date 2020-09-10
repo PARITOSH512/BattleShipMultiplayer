@@ -1,0 +1,69 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using SocketIO;
+
+public class Emoji : MonoBehaviour
+{
+    public ScrollRect ScrollView;
+    public GameObject EmojiContent;
+    private SocketIOComponent socketIOComponent;
+
+    private void Awake()
+    {
+        ScrollView = GameObject.Find("EmojiScrollView").GetComponent<ScrollRect>();
+        ScrollView.enabled = false;
+        EmojiContent = GameObject.Find("EmojiContent");
+
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
+
+        ScrollView.enabled = true;
+        socketIOComponent = GameObject.FindGameObjectWithTag("SocketIO").GetComponent<SocketIOComponent>();
+
+        socketIOComponent.On("Emoji", (SocketIOEvent obj) =>
+        {
+            Debug.Log("obj: " + obj.data.ToString());
+            print("index " + obj.data.GetField("index"));
+
+            string str = obj.data.GetField("index").ToString().Trim(new char['"']);
+            print("index str " + str);
+
+            int a = int.Parse(str);
+
+            SendEmoji(a);
+        });
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void SendEmoji(int i)
+    {
+        print("SEND EMOJI NUMBER" + i);
+        GameObject Clone = Instantiate(Resources.Load("EmojiPrefab", typeof(GameObject)) as GameObject, GameObject.Find("From").transform);
+        print(Resources.Load("Emoji/" + "emj" + i) as Sprite);
+        Clone.GetComponent<MyEmoji>().MyImage.sprite = Resources.Load("Emoji/" + "emj" + i, typeof(Sprite)) as Sprite;
+        Destroy(Clone, 1f);
+
+        if (SceneManager.GetActiveScene().name.Equals("MultiPlayerGamePlayScene"))
+        {
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add("index", i.ToString());
+            socketIOComponent.Emit("Emoji", new JSONObject(pairs), (JSONObject obj) =>
+            {
+                Debug.Log("NUmber index Send" + pairs.ToString());
+            });
+
+        }
+
+    }
+}

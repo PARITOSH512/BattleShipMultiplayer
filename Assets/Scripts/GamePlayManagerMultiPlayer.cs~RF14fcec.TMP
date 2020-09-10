@@ -1,0 +1,321 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Application.Modal;
+using Application;
+using Application.Utils;
+using TMPro;
+using UnityEngine.SceneManagement;
+using SocketIO;
+
+public class GamePlayManagerMultiPlayer : MonoBehaviour
+{
+    public static GamePlayManagerMultiPlayer inst;
+    public GameObject[] spawnPointContainers;
+
+    private GameObject mainSpawnContainer;
+
+    private int numberOfPlayers;
+    private int numberOfIcelandToGive;
+
+    private int[] activatedIcelands;
+
+    [Header("Pause Screen")]
+    public GameObject PauseScreen;
+    public GameObject SoundObject;
+    public Sprite On, Off;
+
+    [Header("Player header objects")]
+    public GameObject redPlayer;
+    public GameObject yellowPlayer;
+    public GameObject greenPlayer;
+    public GameObject bluePlayer;
+
+    public GameObject planePrefab;
+
+    [Header("WinnerCount List Of Object")]
+    public List<GameObject> Allplanet = new List<GameObject>();
+
+    public List<int> TeamOne = new List<int>();
+    public List<int> TeamTwo = new List<int>();
+    public List<int> TeamThree = new List<int>();
+    public List<int> TeamFour = new List<int>();
+    public List<int> ComputerPlayerList = new List<int>();
+
+    public bool isSound;
+
+    public SocketIOComponent socketIOComponent;
+
+    private void Awake()
+    {
+        inst = this;
+        PauseScreen = GameObject.Find("PauseScreen");
+        SoundObject = GameObject.Find("SoundStatus");
+
+        if (GameObject.FindGameObjectWithTag("SocketIO") != null && socketIOComponent == null)
+            socketIOComponent = GameObject.FindGameObjectWithTag("SocketIO").GetComponent<SocketIOComponent>();
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        GameUtil.selectedIceLand = new int[20];
+
+        socketIOComponent.On("Attack", (SocketIOEvent obj) =>
+        {
+            Debug.Log("obj: " + obj.data.ToString());
+            JSONObject DataAttack = new JSONObject(obj.data.ToString());
+            ServerData(DataAttack.GetField("isAttackModeOn"), int.Parse(DataAttack.GetField("selectedIceLand").ToString()), int.Parse(DataAttack.GetField("iceLandIndex").ToString()));
+        });
+
+        JSONObject Data = GameManager.Inst.SaveData;
+        print("SAVE DATA IS HERE ♥☺♦♣ " + Data);
+        int index = int.Parse(Data.GetField("spawncontainerindex").ToString());
+        JSONObject PlayingData = new JSONObject(Data.GetField("playingData").ToString());
+        JSONObject PlayersData = new JSONObject(Data.GetField("playerData").ToString());
+        print("PlayingData +++" + PlayingData);
+        print("PlayersData +++" + PlayersData);
+        StartGame(index, PlayingData, PlayersData);
+
+    }
+    public void StartGame(int spawncontainerindex, JSONObject PlayingData, JSONObject PlayerData)
+    {
+        print("STARTGAME CALL");
+        print("spawncontainerindex =>" + spawncontainerindex);
+        spawnPointContainers[spawncontainerindex].SetActive(true);
+
+        mainSpawnContainer = spawnPointContainers[spawncontainerindex];
+
+        GameUtil.staticSpawnContainer = mainSpawnContainer;
+
+        int totalChild = mainSpawnContainer.transform.childCount;
+
+
+        for (int k = 0; k < PlayingData.Count; k++)
+        {
+            int a = int.Parse(PlayingData[k].GetField("activethisindex").ToString());
+            int planeToBeSet = int.Parse(PlayingData[k].GetField("planevalue").ToString());
+
+            if (!mainSpawnContainer.transform.GetChild(a).gameObject.activeInHierarchy)
+            {
+                mainSpawnContainer.transform.GetChild(a).gameObject.GetComponent<Iceland>().totalPlane = planeToBeSet;
+                mainSpawnContainer.transform.GetChild(a).gameObject.GetComponent<Iceland>().isStatic = true;
+                mainSpawnContainer.transform.GetChild(a).gameObject.GetComponent<Iceland>().isFree = true;
+                mainSpawnContainer.transform.GetChild(a).gameObject.GetComponent<Iceland>().playerType = "none";
+                mainSpawnContainer.transform.GetChild(a).gameObject.GetComponent<Iceland>().iceLandIndex = a;
+                mainSpawnContainer.transform.GetChild(a).gameObject.SetActive(true);
+                Allplanet.Add(mainSpawnContainer.transform.GetChild(a).gameObject);
+            }
+        }
+
+        for (int l = 0; l < PlayerData.Count; l++)
+        {
+            int playerindex = int.Parse(PlayerData[l].GetField("playerindex").ToString());
+            int planeToBeSet = int.Parse(PlayerData[l].GetField("planevalue").ToString());
+            string teamCode = PlayerData[l].GetField("teamcode").ToString();
+            string playerCode = PlayerData[l].GetField("playercode").ToString();
+            string PlayerColor = PlayerData[l].GetField("color").ToString();
+
+            if (mainSpawnContainer.transform.GetChild(playerindex).gameObject.activeInHierarchy)
+            {
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().playerType = "";//playerDetails.allUsers[i].type;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().playerCode = playerCode;// playerDetails.allUsers[i].name;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().teamCode = teamCode;//playerDetails.allUsers[i].team;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().color = PlayerColor;// playerDetails.allUsers[i].color;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().totalPlane = planeToBeSet;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().isFree = false;
+                mainSpawnContainer.transform.GetChild(activatedIcelands[playerindex]).gameObject.GetComponent<Iceland>().isStatic = false;
+
+                //enable top header player visibility
+                if (PlayerColor == "red")
+                    if (redPlayer != null)
+                        redPlayer.SetActive(true);
+
+                if (PlayerColor == "yellow")
+                    if (yellowPlayer != null)
+                        yellowPlayer.SetActive(true);
+
+                if (PlayerColor == "green")
+                    if (greenPlayer != null)
+                        greenPlayer.SetActive(true);
+
+                if (PlayerColor == "blue")
+                    if (bluePlayer != null)
+                        bluePlayer.SetActive(true);
+            }
+        }
+
+        GameUtil.ResetAttackMode();
+        GameUtil.activatedIcelands = activatedIcelands;
+    }
+    // Update is called once per frame
+    private void Update()
+    {
+
+    }
+
+    void ServerData(bool isAttack, int attackIndex, int selectediceland)
+    {
+        if (isAttack && attackIndex != -1 && GameUtil.CheckIsIcelandSelected(selectediceland))
+        {
+            //get both object and store into one object
+            GameObject attackOn = mainSpawnContainer.transform.GetChild(attackIndex).gameObject;
+            GameObject attackFrom = mainSpawnContainer.transform.GetChild(selectediceland).gameObject;
+
+            #region Send Attacking planes
+            //get number of planes to be removed
+            int removePlane = 0;
+            if (attackFrom.GetComponent<Iceland>().totalPlane > 1)
+            {
+                //deactivated activated round iceland border of attackFrom iceland
+                attackFrom.transform.GetChild(1).gameObject.SetActive(false);
+
+                removePlane = Mathf.RoundToInt(attackFrom.GetComponent<Iceland>().totalPlane / 2);
+                attackFrom.GetComponent<Iceland>().totalPlane = removePlane;    //deduct plane to e removed from attackFrom iceland
+
+                int attackerTotalPlane = attackOn.GetComponent<Iceland>().totalPlane;
+
+                //generate one plane object and assign to object
+                GameObject planeObject = Instantiate(planePrefab, mainSpawnContainer.gameObject.transform);
+
+                //set position of plane to attackFrom's position
+                planeObject.transform.position = attackFrom.transform.position;
+
+                //assign plane to be remove from attackTo iceland and allow to start animation moving towards attackTo object
+                planeObject.GetComponent<AttackingPlane>().totalPlane = removePlane;
+                planeObject.GetComponent<AttackingPlane>().placeAtInitial = true;
+
+                //assign details that needs to be changed after plane reach to the destination iceland
+                Color attackerColor = attackFrom.GetComponentInChildren<Image>().color;
+                planeObject.transform.GetChild(0).GetComponent<Image>().color = new Color(attackerColor.r, attackerColor.g, attackerColor.b, 0.7f);
+                planeObject.GetComponent<AttackingPlane>().playerCode = attackFrom.GetComponent<Iceland>().playerCode;
+                planeObject.GetComponent<AttackingPlane>().teamCode = attackFrom.GetComponent<Iceland>().teamCode;
+                planeObject.GetComponent<AttackingPlane>().playerType = attackFrom.GetComponent<Iceland>().playerType;
+                planeObject.GetComponent<AttackingPlane>().color = attackFrom.GetComponent<Iceland>().color;
+                planeObject.GetComponent<AttackingPlane>().isFree = false;
+                planeObject.GetComponent<AttackingPlane>().isStatic = false;
+
+                //planeObject.transform.SetSiblingIndex();
+
+                //start attacking
+                GameUtil.GenerateAttackPlane(planeObject, attackFrom.transform, attackOn.transform);
+
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().totalPlane);
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().color);
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().playerCode);
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().teamCode);
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().isFree);
+                print("Attck from to here => " + planeObject.GetComponent<AttackingPlane>().isStatic);
+                print("Attck from to here => " + attackOn.name);
+
+                //reset attack
+                GameUtil.ResetAttackMode();
+            }
+            #endregion
+        }
+    }
+
+
+
+
+    public void AddData()
+    {
+        TeamOne.Clear();
+        TeamTwo.Clear();
+        TeamThree.Clear();
+        TeamFour.Clear();
+
+        for (int i = 0; i < Allplanet.Count; i++)
+        {
+            //print(Allplanet[i].GetComponent<Iceland>().playerType);
+            if (Allplanet[i].GetComponent<Iceland>().teamCode.Equals("1"))
+            {
+                TeamOne.Add(1);
+            }
+            else if (Allplanet[i].GetComponent<Iceland>().teamCode.Equals("2"))
+            {
+                TeamTwo.Add(1);
+            }
+            else if (Allplanet[i].GetComponent<Iceland>().teamCode.Equals("3"))
+            {
+                TeamThree.Add(1);
+            }
+            else if (Allplanet[i].GetComponent<Iceland>().teamCode.Equals("4"))
+            {
+                TeamFour.Add(1);
+            }
+        }
+
+        CheckWinner();
+    }
+
+    public void CheckWinner()
+    {
+        print(" CheckWinner ");
+
+        if (TeamOne.Count == 0)
+        {
+            print("<Color=red><b>!♦ TeamOne lost ♦!</b></Color>");
+            GameUtil.isAttackModeOn = false;
+            GameObject.Find("Winner").transform.localScale = Vector3.one;
+            GameObject.Find("WinnerTxt").GetComponent<TMP_Text>().text = "You lost the game";
+            GameObject.Find("WinnerTxt").GetComponent<TMP_Text>().color = Color.red;
+        }
+
+        if (TeamTwo.Count == 0)
+        {
+            print("<Color=red><b>!♦ TeamTwo lost ♦!</b></Color>");
+            GameUtil.isAttackModeOn = false;
+            GameObject.Find("Winner").transform.localScale = Vector3.one;
+            GameObject.Find("WinnerTxt").GetComponent<TMP_Text>().text = "You lost the game";
+            GameObject.Find("WinnerTxt").GetComponent<TMP_Text>().color = Color.red;
+        }
+    }
+
+    public void PauseBtn()
+    {
+        Time.timeScale = 0;
+        PauseScreen.transform.localScale = Vector3.one;
+    }
+
+    public void Resume()
+    {
+        Time.timeScale = 1;
+        PauseScreen.transform.localScale = Vector3.zero;
+    }
+
+    public void QuitGame()
+    {
+        print("<Color><b> Quit Game Call </b></Color>");
+        Time.timeScale = 1;
+        SceneManager.LoadScene("MainMenuScreen");
+    }
+
+    public void Sound()
+    {
+        if (isSound)
+        {
+            isSound = false;
+        }
+        else
+        {
+            isSound = true;
+        }
+        SoundOnOff();
+    }
+
+    internal void SoundOnOff()
+    {
+        if (isSound)
+        {
+            SoundObject.GetComponent<Image>().sprite = On;
+        }
+        else
+        {
+            SoundObject.GetComponent<Image>().sprite = Off;
+        }
+    }
+
+
+}

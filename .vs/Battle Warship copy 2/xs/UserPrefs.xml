@@ -1,0 +1,14 @@
+﻿<Properties StartupConfiguration="{5890D37F-CA6D-7983-B095-8C6F1687888B}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/MainMenuManager.cs">
+    <Files>
+      <File FileName="Assets/Scripts/MainMenuManager.cs" Line="98" Column="10" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="280b5552-ebad-4cb5-b4fa-4f3e8cf836b9" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

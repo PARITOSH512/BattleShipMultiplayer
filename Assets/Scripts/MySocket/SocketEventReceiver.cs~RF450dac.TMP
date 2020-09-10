@@ -1,0 +1,61 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using SocketIO;
+
+public class SocketEventReceiver : MonoBehaviour
+{
+    public static SocketEventReceiver Inst;
+
+    public List<int> MyList = new List<int>();
+
+    int Rand;
+    int[] LastRand;
+    int Max = 6;
+
+    private void Awake()
+    {
+        Inst = this;
+
+        LastRand = new int[Max];
+
+        for (int i = 1; i < Max; i++)
+        {
+            Rand = Random.Range(1, 6);
+
+            for (int j = 1; j < i; j++)
+            {
+                while (Rand == LastRand[j])
+                {
+                    Rand = Random.Range(1, 6);
+                }
+            }
+
+            LastRand[i] = Rand;
+            MyList.Add(Rand);
+            print(Rand);
+        }
+
+    }
+    private void OnEnable()
+    {
+        SocketIOComponent.OnSocketResponse += ReceiveData;
+    }
+    private void OnDisable()
+    {
+    }
+
+    internal void ReceiveData(JSONObject e)
+    {
+        print("<Color>♠ ReceiveData ♠</Color>" + e);
+        string en = e.GetField("en").ToString();
+        JSONObject data = e.GetField("data");
+        print("<Color=yellow> !♦ Event Name ♦! </Color>" + en);
+        switch (en)
+        {
+            case "SP":
+                print("<Color=yellow> !♦ Sing Up Data  ♦! </Color>" + data);
+                break;
+        }
+    }
+}

@@ -1,0 +1,25 @@
+﻿<Properties StartupConfiguration="{ECC7609C-D54E-9753-8F81-94E3273041A5}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GamePlayManagerMultiPlayer.cs">
+    <Files>
+      <File FileName="Assets/Scripts/GamePlayManagerMultiPlayer.cs" Line="266" Column="1" />
+      <File FileName="Assets/Scripts/CreateGameManager.cs" Line="316" Column="1" />
+      <File FileName="Assets/SocketIO/JSONObject/JSONObject.cs" Line="778" Column="24" />
+      <File FileName="../Multiplayer/Assets/code/Networking/Networkclient.cs" Line="146" Column="1" />
+      <File FileName="../Multiplayer/Assets/code/Player/PlayerManager.cs" Line="101" Column="79" />
+      <File FileName="Assets/Scripts/AttackingPlane.cs" />
+      <File FileName="Assets/Scripts/GameManager.cs" Line="99" Column="1" />
+      <File FileName="Assets/Scripts/Emoji.cs" />
+      <File FileName="Assets/Scripts/Models/JoinGame.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Models/TeamUser.cs" />
+      <File FileName="Assets/Scripts/JoinGameManager.cs" />
+      <File FileName="Assets/Scripts/Models/MyCode.cs" Line="7" Column="18" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="3baab4d2-1f46-488c-b4ae-086f96c16bff" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
